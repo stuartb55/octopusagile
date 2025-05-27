@@ -48,12 +48,9 @@ async function getEnergyPrices(days = 3): Promise<EnergyRate[]> {
 
             if (!response.ok) {
                 console.error(`Failed to fetch energy prices: ${response.status} ${response.statusText} from ${nextUrl}`);
-                // Instead of throwing, directly return the empty array.
-                // This achieves the same result as the catch block for this specific error.
-                return []; // <--- MODIFIED LINE
+                return [];
             }
 
-            // The rest of the loop remains the same
             const data: ApiResponse = await response.json(); // This could still throw if JSON is malformed
             allResults = [...allResults, ...data.results];
             nextUrl = data.next;
@@ -65,9 +62,6 @@ async function getEnergyPrices(days = 3): Promise<EnergyRate[]> {
         }
         return allResults;
     } catch (error) {
-        // This catch block will now handle other unexpected errors,
-        // such as network issues from fetch itself (if it throws),
-        // errors from response.json() if parsing fails, or other runtime errors.
         console.error("Error fetching energy prices (general catch):", error);
         return [];
     }
