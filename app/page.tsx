@@ -26,44 +26,50 @@ interface PageProps {
 
 async function getEnergyPrices(days = 3): Promise<EnergyRate[]> {
     try {
-        const now = new Date()
+        const now = new Date();
         // Fetch data from specified days ago up to the end of tomorrow
-        const daysAgo = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
-        daysAgo.setHours(0, 0, 0, 0) // Start of specified days ago
+        const daysAgo = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+        daysAgo.setHours(0, 0, 0, 0); // Start of specified days ago
 
-        const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
-        tomorrow.setHours(23, 59, 59, 999) // End of tomorrow
+        const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        tomorrow.setHours(23, 59, 59, 999); // End of tomorrow
 
-        const periodFrom = daysAgo.toISOString()
-        const periodTo = tomorrow.toISOString()
+        const periodFrom = daysAgo.toISOString();
+        const periodTo = tomorrow.toISOString();
 
-        let allResults: EnergyRate[] = []
+        let allResults: EnergyRate[] = [];
         let nextUrl: string | null =
-            `https://api.octopus.energy/v1/products/AGILE-24-10-01/electricity-tariffs/E-1R-AGILE-24-10-01-G/standard-unit-rates/?period_from=${periodFrom}&period_to=${periodTo}`
+            `https://api.octopus.energy/v1/products/AGILE-24-10-01/electricity-tariffs/E-1R-AGILE-24-10-01-G/standard-unit-rates/?period_from=${periodFrom}&period_to=${periodTo}`;
 
         while (nextUrl) {
             const response = await fetch(nextUrl, {
                 next: {revalidate: 3600}, // Revalidate every hour
-            })
+            });
 
             if (!response.ok) {
-                console.error(`Failed to fetch energy prices: ${response.status} ${response.statusText} from ${nextUrl}`)
-                throw new Error(`Failed to fetch energy prices: ${response.status}`)
+                console.error(`Failed to fetch energy prices: ${response.status} ${response.statusText} from ${nextUrl}`);
+                // Instead of throwing, directly return the empty array.
+                // This achieves the same result as the catch block for this specific error.
+                return []; // <--- MODIFIED LINE
             }
 
-            const data: ApiResponse = await response.json()
-            allResults = [...allResults, ...data.results]
-            nextUrl = data.next
+            // The rest of the loop remains the same
+            const data: ApiResponse = await response.json(); // This could still throw if JSON is malformed
+            allResults = [...allResults, ...data.results];
+            nextUrl = data.next;
 
             if (allResults.length > 10000) {
-                console.warn("Too many results, stopping pagination")
-                break
+                console.warn("Too many results, stopping pagination");
+                break;
             }
         }
-        return allResults
+        return allResults;
     } catch (error) {
-        console.error("Error fetching energy prices:", error)
-        return []
+        // This catch block will now handle other unexpected errors,
+        // such as network issues from fetch itself (if it throws),
+        // errors from response.json() if parsing fails, or other runtime errors.
+        console.error("Error fetching energy prices (general catch):", error);
+        return [];
     }
 }
 
@@ -217,8 +223,8 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
             <div className="flex items-center gap-2 mb-6">
                 <Zap className="h-8 w-8 text-yellow-500"/>
                 <div>
-                    <h1 className="text-3xl font-bold">Energy Price Dashboard</h1>
-                    <p className="text-muted-foreground">Octopus Energy Agile Tariff</p>
+                    <h1 className="text-3xl font-bold">Agile Price Dashboard</h1>
+                    <p className="text-muted-foreground">Unofficial Agile Price Dashboard</p>
                 </div>
             </div>
 
@@ -484,7 +490,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                     const daySequence = [
                         {dateString: tomorrowDateString, label: "Tomorrow", isFuture: true},
                         {dateString: todayDateString, label: "Today"},
-                        {dateString: new Date(now - 1 * 24 * 60 * 60 * 1000).toDateString(), label: "Yesterday"},
+                        {dateString: new Date(now - 24 * 60 * 60 * 1000).toDateString(), label: "Yesterday"},
                         {dateString: new Date(now - 2 * 24 * 60 * 60 * 1000).toDateString(), label: "2 Days Ago"},
                         {dateString: new Date(now - 3 * 24 * 60 * 60 * 1000).toDateString(), label: "3 Days Ago"},
                     ]
