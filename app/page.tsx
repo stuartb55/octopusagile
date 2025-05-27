@@ -2,7 +2,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import {Badge} from "@/components/ui/badge"
 import Link from 'next/link';
 import {Button} from "@/components/ui/button";
-import {CalendarDays, TrendingUp, TrendingDown, Zap, Clock, ArrowRight} from "lucide-react"
+import {CalendarDays, TrendingUp, TrendingDown, Zap, Clock} from "lucide-react"
 import {EnergyPriceChart} from "./energy-price-chart"
 import {PriceStatsCard} from "./price-stats-card"
 
@@ -177,10 +177,10 @@ function getPriceColor(price: number) {
 }
 
 function getPriceBadgeVariant(price: number): "default" | "secondary" | "destructive" | "outline" {
-    if (price < 0) return "default" // blue-ish
-    if (price <= 15) return "secondary" // green-ish
-    if (price <= 30) return "outline" // yellow-ish
-    return "destructive" // red
+    if (price < 0) return "default"
+    if (price <= 15) return "secondary"
+    if (price <= 30) return "outline"
+    return "destructive"
 }
 
 export default async function EnergyPricesPage({searchParams}: PageProps) {
@@ -189,8 +189,8 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
     const validDays = [1, 3, 7, 14, 30].includes(selectedDays) ? selectedDays : 3
 
     const allPrices = await getEnergyPrices(validDays)
-    const filteredPrices = filterPricesByDateRange(allPrices) // These are all prices for the chart and overall stats
-    const groupedPrices = groupPricesByDay(allPrices) // Prices grouped by day, with tomorrow's potentially partial
+    const filteredPrices = filterPricesByDateRange(allPrices)
+    const groupedPrices = groupPricesByDay(allPrices)
     const overallStats = calculateStats(filteredPrices.filter((p) => new Date(p.valid_from) <= new Date())) // Calculate overall stats only on past/present data
 
     const todayDateString = new Date().toDateString()
@@ -346,7 +346,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
 
                 return (
                     <div className="space-y-4">
-                        <h2 className="text-lg font-semibold">Today's Prices</h2>
+                        <h2 className="text-lg font-semibold">Today&apos;s Prices</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <PriceStatsCard
                                 title="Today's Average"
@@ -442,14 +442,14 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                 {hasAnyTomorrowPrices && (
                     <Badge variant="secondary" className="flex items-center gap-1">
                         <Zap className="h-3 w-3 text-blue-500"/>
-                        Tomorrow's prices available
+                        Tomorrow&apos;s prices available
                         {hasPartialTomorrowPrices && " (may be partial)"}
                     </Badge>
                 )}
                 {!hasAnyTomorrowPrices && (
                     <Badge variant="outline" className="flex items-center gap-1 text-muted-foreground">
                         <Clock className="h-3 w-3"/>
-                        Tomorrow's prices usually after 4 PM
+                        Tomorrow&apos;s prices usually after 4 PM
                     </Badge>
                 )}
             </div>
@@ -555,7 +555,8 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                         </span>
                                                 <Badge variant="outline">{dayInfo.label}</Badge>
                                             </CardTitle>
-                                            <CardDescription>Tomorrow's prices are not yet available.</CardDescription>
+                                            <CardDescription>Tomorrow&apos;s prices are not yet
+                                                available.</CardDescription>
                                         </CardHeader>
                                         <CardContent className="flex flex-col items-center justify-center h-32">
                                             <Clock className="h-8 w-8 text-muted-foreground mb-2"/>
