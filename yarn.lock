@@ -3367,6 +3367,7 @@ __metadata:
     recharts: "npm:^2.15.3"
     tailwind-merge: "npm:^3.3.0"
     tailwindcss: "npm:^4.1.7"
+    tailwindcss-animate: "npm:^1.0.7"
     typescript: "npm:^5.8.3"
     typescript-eslint: "npm:^8.32.1"
   languageName: unknown
@@ -4123,6 +4124,15 @@ __metadata:
   version: 3.3.0
   resolution: "tailwind-merge@npm:3.3.0"
   checksum: 10c0/a50cd141100486f98541dfab3705712af5860556689b7496dc6b0284374f02d12d5471f0f40035f6bb8b1c749c422060a1f3e5f8900057d8a7786b111c8472e6
+  languageName: node
+  linkType: hard
+
+"tailwindcss-animate@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "tailwindcss-animate@npm:1.0.7"
+  peerDependencies:
+    tailwindcss: "*"
+  checksum: 10c0/ec7dbd1631076b97d66a1fbaaa06e0725fccfa63119221e8d87a997b02dcede98ad88bb1ef6665b968f5d260fcefb10592e0299ca70208d365b37761edf5e19a
   languageName: node
   linkType: hard
 
