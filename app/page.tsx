@@ -24,7 +24,7 @@ interface PageProps {
     searchParams: Promise<{ days?: string }>
 }
 
-async function getEnergyPrices(days = 3): Promise<EnergyRate[]> {
+async function getEnergyPrices(days = 1): Promise<EnergyRate[]> {
     try {
         const now = new Date();
         const currentHour = now.getHours();
