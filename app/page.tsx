@@ -27,6 +27,15 @@ interface PageProps {
 async function getEnergyPrices(days = 3): Promise<EnergyRate[]> {
     try {
         const now = new Date();
+        const currentHour = now.getHours();
+
+        let revalidateSeconds;
+        if (currentHour >= 15 && currentHour < 17) {
+            revalidateSeconds = 30; // 30 seconds
+        } else {
+            revalidateSeconds = 3000; // 50 minutes
+        }
+
         // Fetch data from specified days ago up to the end of tomorrow
         const daysAgo = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
         daysAgo.setHours(0, 0, 0, 0); // Start of specified days ago
@@ -43,7 +52,7 @@ async function getEnergyPrices(days = 3): Promise<EnergyRate[]> {
 
         while (nextUrl) {
             const response = await fetch(nextUrl, {
-                next: {revalidate: 3600}, // Revalidate every hour
+                next: {revalidate: revalidateSeconds},
             });
 
             if (!response.ok) {
@@ -51,11 +60,11 @@ async function getEnergyPrices(days = 3): Promise<EnergyRate[]> {
                 return [];
             }
 
-            const data: ApiResponse = await response.json(); // This could still throw if JSON is malformed
+            const data: ApiResponse = await response.json();
             allResults = [...allResults, ...data.results];
             nextUrl = data.next;
 
-            if (allResults.length > 10000) {
+            if (allResults.length > 1500) {
                 console.warn("Too many results, stopping pagination");
                 break;
             }
