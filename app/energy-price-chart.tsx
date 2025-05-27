@@ -4,26 +4,51 @@ import {XAxis, YAxis, Area, AreaChart, Cell, Bar, BarChart} from "recharts"
 import {ChartContainer, ChartTooltip} from "@/components/ui/chart"
 
 interface EnergyRate {
-    value_exc_vat: number
-    value_inc_vat: number
-    valid_from: string
-    valid_to: string
+    value_exc_vat: number;
+    value_inc_vat: number;
+    valid_from: string;
+    valid_to: string;
 }
 
 interface EnergyPriceChartProps {
-    prices: EnergyRate[]
-    compact?: boolean
+    prices: EnergyRate[];
+    compact?: boolean;
 }
 
+// --- Added Type Definitions ---
+interface ChartDatapoint {
+    time: string;
+    price: number;
+    timestamp: number;
+    date: string;
+    color: string;
+}
+
+interface TooltipPayloadItem {
+    payload: ChartDatapoint;
+    name?: string;
+    value?: number | string;
+    color?: string;
+    dataKey?: string;
+}
+
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: TooltipPayloadItem[];
+    label?: string | number;
+}
+
+// --- End of Added Type Definitions ---
+
 export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProps) {
-    const chartData = prices.map((price) => {
-        let color = "#ef4444" // red default
+    const chartData: ChartDatapoint[] = prices.map((price) => {
+        let color = "#ef4444"; // red default
         if (price.value_inc_vat < 0) {
-            color = "#3b82f6" // blue for negative
+            color = "#3b82f6"; // blue for negative
         } else if (price.value_inc_vat <= 15) {
-            color = "#22c55e" // green for 0-15
+            color = "#22c55e"; // green for 0-15
         } else if (price.value_inc_vat <= 30) {
-            color = "#eab308" // yellow for 15-30
+            color = "#eab308"; // yellow for 15-30
         }
         // over 30 stays red
 
@@ -38,8 +63,8 @@ export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProp
             timestamp: new Date(price.valid_from).getTime(),
             date: new Date(price.valid_from).toDateString(),
             color: color,
-        }
-    })
+        };
+    });
 
     const chartConfig = {
         price: {
@@ -62,11 +87,11 @@ export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProp
             label: "High (> 30p)",
             color: "#ef4444",
         },
-    }
+    };
 
-    const CustomTooltip = ({active, payload, label}: any) => {
+    const CustomTooltip = ({active, payload}: CustomTooltipProps) => { // <-- Changed 'any' to 'CustomTooltipProps'
         if (active && payload && payload.length) {
-            const data = payload[0].payload
+            const data = payload[0].payload; // 'data' is now correctly typed as ChartDatapoint
             return (
                 <div className="bg-background border rounded-lg p-3 shadow-lg">
                     <p className="font-medium">{new Date(data.timestamp).toLocaleString("en-GB")}</p>
@@ -74,10 +99,10 @@ export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProp
                         Price: <span className="font-semibold text-foreground">{data.price.toFixed(2)}p/kWh</span>
                     </p>
                 </div>
-            )
+            );
         }
-        return null
-    }
+        return null;
+    };
 
     if (compact) {
         return (
@@ -90,7 +115,7 @@ export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProp
                           strokeWidth={2}/>
                 </AreaChart>
             </ChartContainer>
-        )
+        );
     }
 
     return (
@@ -110,5 +135,5 @@ export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProp
                 </Bar>
             </BarChart>
         </ChartContainer>
-    )
+    );
 }

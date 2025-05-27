@@ -1,16 +1,40 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import js from "@eslint/js";
+import globals from "globals";
+import tseslint from "typescript-eslint";
+import pluginReact from "eslint-plugin-react";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+export default [
+    js.configs.recommended,
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+    {
+        files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+        languageOptions: {
+            globals: {
+                ...globals.browser,
+            }
+        }
+    },
 
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+    ...tseslint.configs.recommended,
+
+    pluginReact.configs.flat.recommended, // This enables React-specific rules, including react/prop-types
+
+    {
+        files: ["**/*.{ts,tsx,mts,cts}"],
+        rules: {
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    args: 'all',
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                    caughtErrorsIgnorePattern: '^_',
+                    destructuredArrayIgnorePattern: '^_',
+                },
+            ],
+            // Add this line to disable the react/prop-types rule for TypeScript files
+            "react/prop-types": "off",
+            "react/react-in-jsx-scope": "off" // Not needed with React 17+ and newer versions of Next.js
+        },
+    }
 ];
-
-export default eslintConfig;
