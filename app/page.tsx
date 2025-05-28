@@ -24,24 +24,46 @@ interface PageProps {
     searchParams: Promise<{ days?: string }>
 }
 
+// Options for formatting dates and times in London timezone
+const londonTimeOptions: Intl.DateTimeFormatOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/London"
+};
+
+const londonDateShortMonthOptions: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "short",
+    timeZone: "Europe/London"
+};
+
+const londonFullDateDisplayOptions: Intl.DateTimeFormatOptions = {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Europe/London"
+};
+
+
 async function getEnergyPrices(days = 1): Promise<EnergyRate[]> {
     try {
         const now = new Date();
-        const currentHour = now.getHours();
+        const currentHour = now.getHours(); // Server's local hour
 
         let revalidateSeconds;
-        if (currentHour >= 15 && currentHour < 17) {
-            revalidateSeconds = 30; // 30 seconds
+        if (currentHour >= 15 && currentHour < 17) { // This logic is based on server time, usually UTC for Octopus API updates
+            revalidateSeconds = 30;
         } else {
-            revalidateSeconds = 3000; // 50 minutes
+            revalidateSeconds = 3000;
         }
 
-        // Fetch data from specified days ago up to the end of tomorrow
+        // Fetch data from specified days ago up to the end of tomorrow (UTC based for API query)
         const daysAgo = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-        daysAgo.setHours(0, 0, 0, 0); // Start of specified days ago
+        daysAgo.setHours(0, 0, 0, 0); // Start of specified days ago (server time)
 
         const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        tomorrow.setHours(23, 59, 59, 999); // End of tomorrow
+        tomorrow.setHours(23, 59, 59, 999); // End of tomorrow (server time)
 
         const periodFrom = daysAgo.toISOString();
         const periodTo = tomorrow.toISOString();
@@ -77,38 +99,37 @@ async function getEnergyPrices(days = 1): Promise<EnergyRate[]> {
 }
 
 function filterPricesByDateRange(prices: EnergyRate[]): EnergyRate[] {
+    // Sorts by absolute time, which is correct.
     return prices.sort((a, b) => new Date(a.valid_from).getTime() - new Date(b.valid_from).getTime())
 }
 
 function groupPricesByDay(prices: EnergyRate[]): Record<string, EnergyRate[]> {
     const grouped = prices.reduce(
         (acc, price) => {
-            const date = new Date(price.valid_from).toDateString()
-            if (!acc[date]) {
-                acc[date] = []
+            // Use London-specific date string for grouping
+            const dateKey = new Date(price.valid_from).toLocaleDateString("en-GB", londonFullDateDisplayOptions);
+            if (!acc[dateKey]) {
+                acc[dateKey] = []
             }
-            acc[date].push(price)
+            acc[dateKey].push(price)
             return acc
         },
         {} as Record<string, EnergyRate[]>,
     )
 
     const filteredGrouped: Record<string, EnergyRate[]> = {}
-    const tomorrowDateString = new Date(Date.now() + 24 * 60 * 60 * 1000).toDateString()
+    // Get tomorrow's date string as it will be in London, using the same format as keys
+    const tomorrowDateStringKey = new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleDateString("en-GB", londonFullDateDisplayOptions);
 
-    Object.entries(grouped).forEach(([date, dayPrices]) => {
+    Object.entries(grouped).forEach(([dateKey, dayPrices]) => {
         const sortedPrices = dayPrices.sort((a, b) => new Date(a.valid_from).getTime() - new Date(b.valid_from).getTime())
 
-        // For tomorrow, show if any data exists (API might release it gradually)
-        // For other days, require a more complete set of data (near 48 slots)
-        if (date === tomorrowDateString) {
+        if (dateKey === tomorrowDateStringKey) {
             if (sortedPrices.length > 0) {
-                // Show if any data for tomorrow
-                filteredGrouped[date] = sortedPrices
+                filteredGrouped[dateKey] = sortedPrices
             }
-        } else if (sortedPrices.length >= 46) {
-            // For past/today, require near full day (48 half-hour slots)
-            filteredGrouped[date] = sortedPrices
+        } else if (sortedPrices.length >= 46) { // For past/today London days
+            filteredGrouped[dateKey] = sortedPrices
         }
     })
 
@@ -132,7 +153,6 @@ function calculateStats(prices: EnergyRate[]) {
             const firstAvg = firstHalf.reduce((sum, val) => sum + val, 0) / firstHalf.length
             const secondAvg = secondHalf.reduce((sum, val) => sum + val, 0) / secondHalf.length
             if (firstAvg !== 0) {
-                // Avoid division by zero
                 trend = ((secondAvg - firstAvg) / firstAvg) * 100
             }
         }
@@ -141,17 +161,15 @@ function calculateStats(prices: EnergyRate[]) {
 }
 
 function getCurrentAndNextPrices(prices: EnergyRate[]) {
-    const now = new Date()
+    const now = new Date() // Current absolute time
     const sortedPrices = prices.sort((a, b) => new Date(a.valid_from).getTime() - new Date(b.valid_from).getTime())
 
-    // Find current price (price period that contains current time)
     const currentPrice = sortedPrices.find((price) => {
         const validFrom = new Date(price.valid_from)
         const validTo = new Date(price.valid_to)
         return now >= validFrom && now < validTo
     })
 
-    // Find next price (first price period after current time)
     const nextPrice = sortedPrices.find((price) => {
         const validFrom = new Date(price.valid_from)
         return validFrom > now
@@ -164,7 +182,6 @@ function getCheapestPriceNext24Hours(prices: EnergyRate[]) {
     const now = new Date()
     const next24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000)
 
-    // Filter prices for next 24 hours
     const next24HourPrices = prices.filter((price) => {
         const validFrom = new Date(price.valid_from)
         return validFrom >= now && validFrom <= next24Hours
@@ -172,7 +189,6 @@ function getCheapestPriceNext24Hours(prices: EnergyRate[]) {
 
     if (next24HourPrices.length === 0) return null
 
-    // Find the cheapest price
     return next24HourPrices.reduce((cheapest, current) => {
         return current.value_inc_vat < cheapest.value_inc_vat ? current : cheapest
     })
@@ -198,18 +214,20 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
     const validDays = [1, 3, 7, 14, 30].includes(selectedDays) ? selectedDays : 3
 
     const allPrices = await getEnergyPrices(validDays)
-    const filteredPrices = filterPricesByDateRange(allPrices)
-    const groupedPrices = groupPricesByDay(allPrices)
-    const overallStats = calculateStats(filteredPrices.filter((p) => new Date(p.valid_from) <= new Date())) // Calculate overall stats only on past/present data
+    const filteredPrices = filterPricesByDateRange(allPrices) // Sorted by absolute time
+    const groupedPrices = groupPricesByDay(allPrices) // Keys are London date strings
+    // overallStats are calculated on prices up to the current absolute moment, which is correct
+    const overallStats = calculateStats(filteredPrices.filter((p) => new Date(p.valid_from) <= new Date()))
 
-    const todayDateString = new Date().toDateString()
-    const tomorrowDateString = new Date(Date.now() + 24 * 60 * 60 * 1000).toDateString()
+    const now = new Date();
+    // Generate date strings for today and tomorrow in London timezone, matching groupPrice keys
+    const todayDateStringKey = now.toLocaleDateString("en-GB", londonFullDateDisplayOptions);
+    const tomorrowDateStringKey = new Date(now.getTime() + 24 * 60 * 60 * 1000).toLocaleDateString("en-GB", londonFullDateDisplayOptions);
 
-    const tomorrowPrices = groupedPrices[tomorrowDateString] || []
+    const tomorrowPrices = groupedPrices[tomorrowDateStringKey] || []
     const hasAnyTomorrowPrices = tomorrowPrices.length > 0
-    const hasPartialTomorrowPrices = hasAnyTomorrowPrices && tomorrowPrices.length < 46 // Assuming 48 is full, 46 is near full
+    const hasPartialTomorrowPrices = hasAnyTomorrowPrices && tomorrowPrices.length < 46
 
-    // Get current, next, and cheapest prices
     const {currentPrice, nextPrice} = getCurrentAndNextPrices(filteredPrices)
     const cheapestPrice = getCheapestPriceNext24Hours(filteredPrices)
 
@@ -231,7 +249,6 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                 </div>
             </div>
 
-            {/* Current Price Information */}
             <Card className="border-2">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -241,7 +258,6 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Current Price */}
                         <div className="text-center">
                             <p className="text-sm text-muted-foreground mb-2">Current Price</p>
                             {currentPrice ? (
@@ -250,15 +266,9 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                         {currentPrice.value_inc_vat.toFixed(2)}p
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                        {new Date(currentPrice.valid_from).toLocaleTimeString("en-GB", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}{" "}
+                                        {new Date(currentPrice.valid_from).toLocaleTimeString("en-GB", londonTimeOptions)}{" "}
                                         -{" "}
-                                        {new Date(currentPrice.valid_to).toLocaleTimeString("en-GB", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
+                                        {new Date(currentPrice.valid_to).toLocaleTimeString("en-GB", londonTimeOptions)}
                                     </p>
                                     <Badge variant={getPriceBadgeVariant(currentPrice.value_inc_vat)} className="mt-2">
                                         {currentPrice.value_inc_vat < 0
@@ -275,7 +285,6 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                             )}
                         </div>
 
-                        {/* Next Price */}
                         <div className="text-center">
                             <p className="text-sm text-muted-foreground mb-2">Next Price</p>
                             {nextPrice ? (
@@ -284,15 +293,9 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                         {nextPrice.value_inc_vat.toFixed(2)}p
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                        {new Date(nextPrice.valid_from).toLocaleTimeString("en-GB", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}{" "}
+                                        {new Date(nextPrice.valid_from).toLocaleTimeString("en-GB", londonTimeOptions)}{" "}
                                         -{" "}
-                                        {new Date(nextPrice.valid_to).toLocaleTimeString("en-GB", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
+                                        {new Date(nextPrice.valid_to).toLocaleTimeString("en-GB", londonTimeOptions)}
                                     </p>
                                     <Badge variant={getPriceBadgeVariant(nextPrice.value_inc_vat)} className="mt-2">
                                         {nextPrice.value_inc_vat < 0
@@ -309,7 +312,6 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                             )}
                         </div>
 
-                        {/* Cheapest in Next 24 Hours */}
                         <div className="text-center">
                             <p className="text-sm text-muted-foreground mb-2">Cheapest Next 24h</p>
                             {cheapestPrice ? (
@@ -318,21 +320,12 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                         {cheapestPrice.value_inc_vat.toFixed(2)}p
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                        {new Date(cheapestPrice.valid_from).toLocaleDateString("en-GB", {
-                                            day: "numeric",
-                                            month: "short",
-                                        })}{" "}
-                                        {new Date(cheapestPrice.valid_from).toLocaleTimeString("en-GB", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
+                                        {new Date(cheapestPrice.valid_from).toLocaleDateString("en-GB", londonDateShortMonthOptions)}{" "}
+                                        {new Date(cheapestPrice.valid_from).toLocaleTimeString("en-GB", londonTimeOptions)}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
                                         -{" "}
-                                        {new Date(cheapestPrice.valid_to).toLocaleTimeString("en-GB", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
+                                        {new Date(cheapestPrice.valid_to).toLocaleTimeString("en-GB", londonTimeOptions)}
                                     </p>
                                     <Badge variant={getPriceBadgeVariant(cheapestPrice.value_inc_vat)} className="mt-2">
                                         Best Time
@@ -346,9 +339,8 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                 </CardContent>
             </Card>
 
-            {/* Today's Stats Cards */}
             {(() => {
-                const todayPrices = groupedPrices[todayDateString] || []
+                const todayPrices = groupedPrices[todayDateStringKey] || [] // Use London-specific key
                 const todayStats = calculateStats(todayPrices)
 
                 if (todayPrices.length === 0) return null
@@ -386,7 +378,6 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                 )
             })()}
 
-            {/* Time Range Selector */}
             <div className="flex items-center gap-4">
                 <h2 className="text-lg font-semibold">Historical Overview</h2>
                 <div className="flex flex-wrap gap-2">
@@ -405,7 +396,6 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                 </div>
             </div>
 
-            {/* Period Stats Cards */}
             <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <PriceStatsCard
@@ -441,11 +431,11 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                 </div>
             </div>
 
-            {/* Status Badges */}
             <div className="flex gap-2 flex-wrap items-center">
                 <Badge variant="outline" className="flex items-center gap-1">
                     <CalendarDays className="h-3 w-3"/>
-                    {Object.keys(groupedPrices).filter((date) => date !== tomorrowDateString || hasAnyTomorrowPrices).length} days
+                    {/* Filter out tomorrow's key if no prices for it, to count displayed days correctly */}
+                    {Object.keys(groupedPrices).filter(key => key !== tomorrowDateStringKey || hasAnyTomorrowPrices).length} days
                     of data displayed
                 </Badge>
                 {hasAnyTomorrowPrices && (
@@ -463,7 +453,6 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                 )}
             </div>
 
-            {/* Main Chart */}
             <Card>
                 <CardHeader>
                     <CardTitle>Energy Price Trends</CardTitle>
@@ -473,29 +462,36 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {/* Chart shows all fetched prices including potentially partial tomorrow */}
                     <EnergyPriceChart
                         prices={filteredPrices.filter((p) => {
                             const priceDate = new Date(p.valid_from)
-                            // Include past days and tomorrow if it has any prices
-                            return priceDate < new Date(Date.now() + 48 * 60 * 60 * 1000) // Show up to end of tomorrow
+                            return priceDate < new Date(Date.now() + 48 * 60 * 60 * 1000) // Show up to end of tomorrow (absolute time)
                         })}
                     />
                 </CardContent>
             </Card>
 
-            {/* Daily Breakdown */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {(() => {
                     const dayCards = []
-                    const now = Date.now()
-                    // Define the sequence of days we want to try and display
+                    const nowForSequence = new Date(); // Current absolute time
+
+                    // Define the sequence of London day keys we want to try and display
                     const daySequence = [
-                        {dateString: tomorrowDateString, label: "Tomorrow", isFuture: true},
-                        {dateString: todayDateString, label: "Today"},
-                        {dateString: new Date(now - 24 * 60 * 60 * 1000).toDateString(), label: "Yesterday"},
-                        {dateString: new Date(now - 2 * 24 * 60 * 60 * 1000).toDateString(), label: "2 Days Ago"},
-                        {dateString: new Date(now - 3 * 24 * 60 * 60 * 1000).toDateString(), label: "3 Days Ago"},
+                        {dateStringKey: tomorrowDateStringKey, label: "Tomorrow", isFuture: true},
+                        {dateStringKey: todayDateStringKey, label: "Today"},
+                        {
+                            dateStringKey: new Date(nowForSequence.getTime() - 24 * 60 * 60 * 1000).toLocaleDateString("en-GB", londonFullDateDisplayOptions),
+                            label: "Yesterday"
+                        },
+                        {
+                            dateStringKey: new Date(nowForSequence.getTime() - 2 * 24 * 60 * 60 * 1000).toLocaleDateString("en-GB", londonFullDateDisplayOptions),
+                            label: "2 Days Ago"
+                        },
+                        {
+                            dateStringKey: new Date(nowForSequence.getTime() - 3 * 24 * 60 * 60 * 1000).toLocaleDateString("en-GB", londonFullDateDisplayOptions),
+                            label: "3 Days Ago"
+                        },
                     ]
 
                     let cardsAdded = 0
@@ -503,23 +499,18 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                     for (const dayInfo of daySequence) {
                         if (cardsAdded >= 4) break
 
-                        const dayPrices = groupedPrices[dayInfo.dateString]
+                        // Use the London-specific dateStringKey to look up prices
+                        const dayPrices = groupedPrices[dayInfo.dateStringKey]
 
                         if (dayInfo.isFuture) {
-                            // Handle tomorrow specifically
-                            if (hasAnyTomorrowPrices) {
-                                const dayStats = calculateStats(dayPrices)
+                            if (hasAnyTomorrowPrices) { // tomorrowPrices are already fetched using tomorrowDateStringKey
+                                const dayStats = calculateStats(tomorrowPrices) // Use tomorrowPrices directly
                                 dayCards.push(
-                                    <Card key={dayInfo.dateString}>
+                                    <Card key={dayInfo.dateStringKey}>
                                         <CardHeader>
                                             <CardTitle className="flex items-center justify-between">
-                        <span>
-                          {new Date(dayInfo.dateString).toLocaleDateString("en-GB", {
-                              weekday: "long",
-                              day: "numeric",
-                              month: "long",
-                          })}
-                        </span>
+                                                {/* Display the pre-formatted London date string key */}
+                                                <span>{dayInfo.dateStringKey}</span>
                                                 <Badge variant="secondary">
                                                     {dayInfo.label}
                                                     {hasPartialTomorrowPrices && " (Partial)"}
@@ -530,7 +521,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                             </CardDescription>
                                         </CardHeader>
                                         <CardContent>
-                                            <EnergyPriceChart prices={dayPrices} compact/>
+                                            <EnergyPriceChart prices={tomorrowPrices} compact/>
                                             <div className="grid grid-cols-3 gap-4 mt-4 text-sm">
                                                 <div>
                                                     <p className="text-muted-foreground">Min</p>
@@ -550,18 +541,12 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                 )
                                 cardsAdded++
                             } else {
-                                // Tomorrow, but no prices yet
                                 dayCards.push(
-                                    <Card key={dayInfo.dateString} className="border-dashed">
+                                    <Card key={dayInfo.dateStringKey} className="border-dashed">
                                         <CardHeader>
                                             <CardTitle className="flex items-center justify-between">
-                        <span>
-                          {new Date(dayInfo.dateString).toLocaleDateString("en-GB", {
-                              weekday: "long",
-                              day: "numeric",
-                              month: "long",
-                          })}
-                        </span>
+                                                {/* Display the pre-formatted London date string key */}
+                                                <span>{dayInfo.dateStringKey}</span>
                                                 <Badge variant="outline">{dayInfo.label}</Badge>
                                             </CardTitle>
                                             <CardDescription>Tomorrow&apos;s prices are not yet
@@ -577,21 +562,15 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                 )
                                 cardsAdded++
                             }
-                        } else if (dayPrices && dayPrices.length > 0) {
-                            // For today and past days
+                        } else if (dayPrices && dayPrices.length > 0) { // For today and past London days
                             const dayStats = calculateStats(dayPrices)
                             dayCards.push(
-                                <Card key={dayInfo.dateString}>
+                                <Card key={dayInfo.dateStringKey}>
                                     <CardHeader>
                                         <CardTitle className="flex items-center justify-between">
-                      <span>
-                        {new Date(dayInfo.dateString).toLocaleDateString("en-GB", {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                        })}
-                      </span>
-                                            {dayInfo.dateString === todayDateString && <Badge>Today</Badge>}
+                                            {/* Display the pre-formatted London date string key */}
+                                            <span>{dayInfo.dateStringKey}</span>
+                                            {dayInfo.dateStringKey === todayDateStringKey && <Badge>Today</Badge>}
                                         </CardTitle>
                                         <CardDescription>
                                             {dayStats.count} price periods • Avg: {dayStats.avg.toFixed(2)}p/kWh
