@@ -1,56 +1,58 @@
 "use client"
 
-import {XAxis, YAxis, Area, AreaChart, Cell, Bar, BarChart} from "recharts"
+import {XAxis, YAxis, Area, AreaChart, Cell, Bar, BarChart, ResponsiveContainer} from "recharts"
 import {ChartContainer, ChartTooltip} from "@/components/ui/chart"
 
 interface EnergyRate {
-    value_exc_vat: number;
-    value_inc_vat: number;
-    valid_from: string;
-    valid_to: string;
+    value_exc_vat: number
+    value_inc_vat: number
+    valid_from: string
+    valid_to: string
 }
 
 interface EnergyPriceChartProps {
-    prices: EnergyRate[];
-    compact?: boolean;
+    prices: EnergyRate[]
+    compact?: boolean
 }
 
-// --- Added Type Definitions ---
 interface ChartDatapoint {
-    time: string;
-    price: number;
-    timestamp: number;
-    date: string;
-    color: string;
+    time: string
+    price: number
+    timestamp: number
+    date: string
+    color: string
+    category: string
 }
 
 interface TooltipPayloadItem {
-    payload: ChartDatapoint;
-    name?: string;
-    value?: number | string;
-    color?: string;
-    dataKey?: string;
+    payload: ChartDatapoint
+    name?: string
+    value?: number | string
+    color?: string
+    dataKey?: string
 }
 
 interface CustomTooltipProps {
-    active?: boolean;
-    payload?: TooltipPayloadItem[];
-    label?: string | number;
+    active?: boolean
+    payload?: TooltipPayloadItem[]
+    label?: string | number
 }
-
-// --- End of Added Type Definitions ---
 
 export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProps) {
     const chartData: ChartDatapoint[] = prices.map((price) => {
-        let color = "#ef4444"; // red default
+        let color = "#ef4444" // red default
+        let category = "High"
+
         if (price.value_inc_vat < 0) {
-            color = "#3b82f6"; // blue for negative
+            color = "#3b82f6" // blue for negative
+            category = "Negative"
         } else if (price.value_inc_vat <= 15) {
-            color = "#22c55e"; // green for 0-15
+            color = "#10b981" // emerald for 0-15
+            category = "Low"
         } else if (price.value_inc_vat <= 30) {
-            color = "#eab308"; // yellow for 15-30
+            color = "#f59e0b" // amber for 15-30
+            category = "Medium"
         }
-        // over 30 stays red
 
         return {
             time: new Date(price.valid_from).toLocaleTimeString("en-GB", {
@@ -59,12 +61,13 @@ export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProp
                 day: compact ? undefined : "2-digit",
                 month: compact ? undefined : "short",
             }),
-            price: price.value_inc_vat,
+            price: Math.round(price.value_inc_vat * 100) / 100,
             timestamp: new Date(price.valid_from).getTime(),
             date: new Date(price.valid_from).toDateString(),
             color: color,
-        };
-    });
+            category: category,
+        }
+    })
 
     const chartConfig = {
         price: {
@@ -77,63 +80,152 @@ export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProp
         },
         low: {
             label: "Low (0-15p)",
-            color: "#22c55e",
+            color: "#10b981",
         },
         medium: {
             label: "Medium (15-30p)",
-            color: "#eab308",
+            color: "#f59e0b",
         },
         high: {
             label: "High (> 30p)",
             color: "#ef4444",
         },
-    };
+    }
 
-    const CustomTooltip = ({active, payload}: CustomTooltipProps) => { // <-- Changed 'any' to 'CustomTooltipProps'
+    const CustomTooltip = ({active, payload}: CustomTooltipProps) => {
         if (active && payload && payload.length) {
-            const data = payload[0].payload; // 'data' is now correctly typed as ChartDatapoint
+            const data = payload[0].payload
             return (
-                <div className="bg-background border rounded-lg p-3 shadow-lg">
-                    <p className="font-medium">{new Date(data.timestamp).toLocaleString("en-GB")}</p>
-                    <p className="text-sm text-muted-foreground">
-                        Price: <span className="font-semibold text-foreground">{data.price.toFixed(2)}p/kWh</span>
-                    </p>
+                <div className="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl p-4 shadow-xl">
+                    <div className="space-y-2">
+                        <p className="font-semibold text-slate-900">
+                            {new Date(data.timestamp).toLocaleString("en-GB", {
+                                weekday: "short",
+                                day: "numeric",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })}
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: data.color}}/>
+                            <span className="text-sm text-slate-600">Price:</span>
+                            <span className="font-bold text-lg" style={{color: data.color}}>
+                {data.price.toFixed(2)}p/kWh
+              </span>
+                        </div>
+                        <div className="text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md">{data.category} Price
+                            Range
+                        </div>
+                    </div>
                 </div>
-            );
+            )
         }
-        return null;
-    };
+        return null
+    }
+
+    const CustomLegend = () => (
+        <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm">
+            <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500"/>
+                <span className="text-slate-700">Negative (&lt; 0p)</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500"/>
+                <span className="text-slate-700">Low (0-15p)</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-amber-500"/>
+                <span className="text-slate-700">Medium (15-30p)</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500"/>
+                <span className="text-slate-700">High (&gt; 30p)</span>
+            </div>
+        </div>
+    )
 
     if (compact) {
         return (
-            <ChartContainer config={chartConfig} className="h-[200px] w-full">
-                <AreaChart data={chartData}>
-                    <XAxis dataKey="time" tick={{fontSize: 10}} interval="preserveStartEnd"/>
-                    <YAxis tick={{fontSize: 10}} domain={["dataMin - 1", "dataMax + 1"]}/>
-                    <ChartTooltip content={<CustomTooltip/>}/>
-                    <Area type="monotone" dataKey="price" stroke="#22c55e" fill="#22c55e" fillOpacity={0.2}
-                          strokeWidth={2}/>
-                </AreaChart>
-            </ChartContainer>
-        );
+            <div className="w-full">
+                <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData} margin={{top: 10, right: 10, left: 10, bottom: 10}}>
+                            <defs>
+                                <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                                </linearGradient>
+                            </defs>
+                            <XAxis
+                                dataKey="time"
+                                tick={{fontSize: 10, fill: "#475569"}}
+                                interval="preserveStartEnd"
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <YAxis
+                                tick={{fontSize: 10, fill: "#475569"}}
+                                domain={[(dataMin: number) => Math.floor(dataMin - 1), (dataMax: number) => Math.ceil(dataMax + 1)]}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <ChartTooltip content={<CustomTooltip/>}/>
+                            <Area
+                                type="monotone"
+                                dataKey="price"
+                                stroke="#10b981"
+                                fill="url(#priceGradient)"
+                                strokeWidth={2}
+                                dot={false}
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </ChartContainer>
+            </div>
+        )
     }
 
     return (
-        <ChartContainer config={chartConfig} className="h-[400px] w-full">
-            <BarChart data={chartData}>
-                <XAxis dataKey="time" tick={{fontSize: 12}} interval="preserveStartEnd"/>
-                <YAxis
-                    tick={{fontSize: 12}}
-                    label={{value: "Price (p/kWh)", angle: -90, position: "insideLeft"}}
-                    domain={["dataMin - 2", "dataMax + 2"]}
-                />
-                <ChartTooltip content={<CustomTooltip/>}/>
-                <Bar dataKey="price" radius={[1, 1, 0, 0]}>
-                    {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color}/>
-                    ))}
-                </Bar>
-            </BarChart>
-        </ChartContainer>
-    );
+        <div className="w-full space-y-4">
+            <ChartContainer config={chartConfig} className="h-[400px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} margin={{top: 20, right: 20, left: 20, bottom: 20}}>
+                        <defs>
+                            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopOpacity={0.9}/>
+                                <stop offset="100%" stopOpacity={0.6}/>
+                            </linearGradient>
+                        </defs>
+                        <XAxis
+                            dataKey="time"
+                            tick={{fontSize: 11, fill: "#475569"}}
+                            interval="preserveStartEnd"
+                            axisLine={false}
+                            tickLine={false}
+                        />
+                        <YAxis
+                            tick={{fontSize: 11, fill: "#475569"}}
+                            label={{
+                                value: "Price (p/kWh)",
+                                angle: -90,
+                                position: "insideLeft",
+                                style: {textAnchor: "middle", fill: "#475569"},
+                            }}
+                            domain={[(dataMin: number) => Math.floor(dataMin - 2), (dataMax: number) => Math.ceil(dataMax + 2)]}
+                            axisLine={false}
+                            tickLine={false}
+                        />
+                        <ChartTooltip content={<CustomTooltip/>}/>
+                        <Bar dataKey="price" radius={[2, 2, 0, 0]} fill="url(#barGradient)">
+                            {chartData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color}/>
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            </ChartContainer>
+            {!compact && <CustomLegend/>}
+        </div>
+    )
 }
