@@ -48,14 +48,9 @@ const londonFullDateDisplayOptions: Intl.DateTimeFormatOptions = {
 async function getEnergyPrices(days = 1): Promise<EnergyRate[]> {
     try {
         const now = new Date()
-        const currentHour = now.getHours()
 
-        let revalidateSeconds
-        if (currentHour >= 15 && currentHour < 17) {
-            revalidateSeconds = 30
-        } else {
-            revalidateSeconds = 3000
-        }
+        // Fixed 30-minute revalidation (1800 seconds)
+        const revalidateSeconds = 1800
 
         const daysAgo = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
         daysAgo.setHours(0, 0, 0, 0)
@@ -193,10 +188,10 @@ function getCheapestPriceNext24Hours(prices: EnergyRate[]) {
 }
 
 function getPriceColor(price: number) {
-    if (price < 0) return "text-blue-600"
-    if (price <= 15) return "text-emerald-600"
-    if (price <= 30) return "text-amber-600"
-    return "text-red-600"
+    if (price < 0) return "text-blue-700"
+    if (price <= 15) return "text-emerald-700"
+    if (price <= 30) return "text-amber-700"
+    return "text-red-700"
 }
 
 function getPriceBadgeVariant(price: number): "default" | "secondary" | "destructive" | "outline" {
@@ -207,10 +202,10 @@ function getPriceBadgeVariant(price: number): "default" | "secondary" | "destruc
 }
 
 function getPriceGradient(price: number) {
-    if (price < 0) return "from-blue-500/20 to-blue-600/20"
-    if (price <= 15) return "from-emerald-500/20 to-emerald-600/20"
-    if (price <= 30) return "from-amber-500/20 to-amber-600/20"
-    return "from-red-500/20 to-red-600/20"
+    if (price < 0) return "from-blue-600/30 to-blue-700/30"
+    if (price <= 15) return "from-emerald-600/30 to-emerald-700/30"
+    if (price <= 30) return "from-amber-600/30 to-amber-700/30"
+    return "from-red-600/30 to-red-700/30"
 }
 
 export default async function EnergyPricesPage({searchParams}: PageProps) {
@@ -303,7 +298,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                                         {currentPrice.value_inc_vat.toFixed(2)}
                                                         <span className="text-lg ml-1">p</span>
                                                     </p>
-                                                    <p className="text-xs text-slate-600 font-medium">
+                                                    <p className="text-xs text-slate-700 font-medium">
                                                         {new Date(currentPrice.valid_from).toLocaleTimeString("en-GB", londonTimeOptions)} -{" "}
                                                         {new Date(currentPrice.valid_to).toLocaleTimeString("en-GB", londonTimeOptions)}
                                                     </p>
@@ -322,7 +317,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                         ) : (
                                             <div className="space-y-3">
                                                 <AlertCircle className="h-8 w-8 text-slate-400 mx-auto"/>
-                                                <p className="text-slate-500">No current price data</p>
+                                                <p className="text-slate-700">No current price data</p>
                                             </div>
                                         )}
                                     </div>
@@ -346,7 +341,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                                         {nextPrice.value_inc_vat.toFixed(2)}
                                                         <span className="text-lg ml-1">p</span>
                                                     </p>
-                                                    <p className="text-xs text-slate-600 font-medium">
+                                                    <p className="text-xs text-slate-700 font-medium">
                                                         {new Date(nextPrice.valid_from).toLocaleTimeString("en-GB", londonTimeOptions)} -{" "}
                                                         {new Date(nextPrice.valid_to).toLocaleTimeString("en-GB", londonTimeOptions)}
                                                     </p>
@@ -365,7 +360,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                         ) : (
                                             <div className="space-y-3">
                                                 <Clock className="h-8 w-8 text-slate-400 mx-auto"/>
-                                                <p className="text-slate-500">No next price data</p>
+                                                <p className="text-slate-700">No next price data</p>
                                             </div>
                                         )}
                                     </div>
@@ -391,7 +386,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                                         {cheapestPrice.value_inc_vat.toFixed(2)}
                                                         <span className="text-lg ml-1">p</span>
                                                     </p>
-                                                    <div className="text-xs text-slate-600 font-medium space-y-1">
+                                                    <div className="text-xs text-slate-700 font-medium space-y-1">
                                                         <p>
                                                             {new Date(cheapestPrice.valid_from).toLocaleDateString(
                                                                 "en-GB",
@@ -403,14 +398,14 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                                     </div>
                                                 </div>
                                                 <Badge variant="secondary"
-                                                       className="bg-green-100 text-green-800 font-medium">
+                                                       className="bg-green-200 text-green-900 font-medium">
                                                     Best Time
                                                 </Badge>
                                             </>
                                         ) : (
                                             <div className="space-y-3">
                                                 <AlertCircle className="h-8 w-8 text-slate-400 mx-auto"/>
-                                                <p className="text-slate-500">No price data available</p>
+                                                <p className="text-slate-700">No price data available</p>
                                             </div>
                                         )}
                                     </div>
@@ -531,7 +526,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                 <div className="flex gap-3 flex-wrap items-center justify-center">
                     <Badge
                         variant="outline"
-                        className="flex items-center gap-2 px-4 py-2 text-slate-700 bg-white/90 backdrop-blur-sm border-slate-300"
+                        className="flex items-center gap-2 px-4 py-2 text-slate-800 bg-white/95 backdrop-blur-sm border-slate-400"
                     >
                         <CalendarDays className="h-4 w-4"/>
                         {Object.keys(groupedPrices).filter((key) => key !== tomorrowDateStringKey || hasAnyTomorrowPrices).length}{" "}
@@ -539,7 +534,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                     </Badge>
                     {hasAnyTomorrowPrices && (
                         <Badge variant="secondary"
-                               className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800">
+                               className="flex items-center gap-2 px-4 py-2 bg-blue-200 text-blue-900">
                             <Zap className="h-4 w-4"/>
                             Tomorrow&apos;s prices available
                             {hasPartialTomorrowPrices && " (may be partial)"}
@@ -548,7 +543,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                     {!hasAnyTomorrowPrices && (
                         <Badge
                             variant="outline"
-                            className="flex items-center gap-2 px-4 py-2 text-slate-700 bg-white/90 backdrop-blur-sm border-slate-300"
+                            className="flex items-center gap-2 px-4 py-2 text-slate-800 bg-white/95 backdrop-blur-sm border-slate-400"
                         >
                             <Clock className="h-4 w-4"/>
                             Tomorrow&apos;s prices usually after 4 PM
@@ -565,7 +560,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                             </div>
                             Energy Price Trends
                         </CardTitle>
-                        <CardDescription className="text-base text-slate-600">
+                        <CardDescription className="text-base text-slate-700">
                             Half-hourly electricity prices for the past {validDays} {validDays === 1 ? "day" : "days"}
                             {hasAnyTomorrowPrices
                                 ? " and available prices for tomorrow."
@@ -640,7 +635,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                                             {hasPartialTomorrowPrices && " (Partial)"}
                                                         </Badge>
                                                     </CardTitle>
-                                                    <CardDescription className="text-base text-slate-600">
+                                                    <CardDescription className="text-base text-slate-700">
                                                         {dayStats.count} price periods • Avg: {dayStats.avg.toFixed(2)}p/kWh
                                                     </CardDescription>
                                                 </CardHeader>
@@ -648,16 +643,16 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                                     <EnergyPriceChart prices={tomorrowPrices} compact/>
                                                     <div className="grid grid-cols-3 gap-4 mt-6">
                                                         <div className="text-center p-3 rounded-lg bg-emerald-50">
-                                                            <p className="text-sm text-emerald-600 font-medium">Min</p>
-                                                            <p className="text-xl font-bold text-emerald-700">{dayStats.min.toFixed(2)}p</p>
+                                                            <p className="text-sm text-emerald-700 font-medium">Min</p>
+                                                            <p className="text-xl font-bold text-emerald-800">{dayStats.min.toFixed(2)}p</p>
                                                         </div>
                                                         <div className="text-center p-3 rounded-lg bg-red-50">
-                                                            <p className="text-sm text-red-600 font-medium">Max</p>
-                                                            <p className="text-xl font-bold text-red-700">{dayStats.max.toFixed(2)}p</p>
+                                                            <p className="text-sm text-red-700 font-medium">Max</p>
+                                                            <p className="text-xl font-bold text-red-800">{dayStats.max.toFixed(2)}p</p>
                                                         </div>
                                                         <div className="text-center p-3 rounded-lg bg-slate-50">
-                                                            <p className="text-sm text-slate-600 font-medium">Avg</p>
-                                                            <p className="text-xl font-bold text-slate-700">{dayStats.avg.toFixed(2)}p</p>
+                                                            <p className="text-sm text-slate-700 font-medium">Avg</p>
+                                                            <p className="text-xl font-bold text-slate-800">{dayStats.avg.toFixed(2)}p</p>
                                                         </div>
                                                     </div>
                                                 </CardContent>
@@ -676,7 +671,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                                         <span className="text-lg">{dayInfo.dateStringKey}</span>
                                                         <Badge variant="outline">{dayInfo.label}</Badge>
                                                     </CardTitle>
-                                                    <CardDescription className="text-slate-600">
+                                                    <CardDescription className="text-slate-700">
                                                         Tomorrow&apos;s prices are not yet available.
                                                     </CardDescription>
                                                 </CardHeader>
@@ -685,7 +680,7 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                                     <div className="p-4 rounded-full bg-slate-100 mb-4">
                                                         <Clock className="h-8 w-8 text-slate-400"/>
                                                     </div>
-                                                    <p className="text-slate-600 text-center max-w-sm">
+                                                    <p className="text-slate-700 text-center max-w-sm">
                                                         Typically published after 4 PM. <br/> Please check back later.
                                                     </p>
                                                 </CardContent>
@@ -708,24 +703,21 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                                         <Badge className="bg-green-100 text-green-800">Today</Badge>
                                                     )}
                                                 </CardTitle>
-                                                <CardDescription className="text-base text-slate-600">
-                                                    {dayStats.count} price periods • Avg: {dayStats.avg.toFixed(2)}p/kWh
-                                                </CardDescription>
                                             </CardHeader>
                                             <CardContent className="p-6">
                                                 <EnergyPriceChart prices={dayPrices} compact/>
                                                 <div className="grid grid-cols-3 gap-4 mt-6">
                                                     <div className="text-center p-3 rounded-lg bg-emerald-50">
-                                                        <p className="text-sm text-emerald-600 font-medium">Min</p>
-                                                        <p className="text-xl font-bold text-emerald-700">{dayStats.min.toFixed(2)}p</p>
+                                                        <p className="text-sm text-emerald-700 font-medium">Min</p>
+                                                        <p className="text-xl font-bold text-emerald-800">{dayStats.min.toFixed(2)}p</p>
                                                     </div>
                                                     <div className="text-center p-3 rounded-lg bg-red-50">
-                                                        <p className="text-sm text-red-600 font-medium">Max</p>
-                                                        <p className="text-xl font-bold text-red-700">{dayStats.max.toFixed(2)}p</p>
+                                                        <p className="text-sm text-red-700 font-medium">Max</p>
+                                                        <p className="text-xl font-bold text-red-800">{dayStats.max.toFixed(2)}p</p>
                                                     </div>
                                                     <div className="text-center p-3 rounded-lg bg-slate-50">
-                                                        <p className="text-sm text-slate-600 font-medium">Avg</p>
-                                                        <p className="text-xl font-bold text-slate-700">{dayStats.avg.toFixed(2)}p</p>
+                                                        <p className="text-sm text-slate-700 font-medium">Avg</p>
+                                                        <p className="text-xl font-bold text-slate-800">{dayStats.avg.toFixed(2)}p</p>
                                                     </div>
                                                 </div>
                                             </CardContent>
