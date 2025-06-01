@@ -5,6 +5,7 @@ import {Button} from "@/components/ui/button"
 import {CalendarDays, TrendingUp, TrendingDown, Zap, Clock, Activity, AlertCircle} from "lucide-react"
 import {EnergyPriceChart} from "./energy-price-chart"
 import {PriceStatsCard} from "./price-stats-card"
+import {PriceList} from "./price-list"
 
 interface EnergyRate {
     value_exc_vat: number
@@ -91,7 +92,7 @@ async function getEnergyPrices(days = 1): Promise<EnergyRate[]> {
     }
 }
 
-function filterPricesByDateRange(prices: EnergyRate[]): EnergyRate[] {
+function filterPricesByDateRange(prices: EnergyRate[]) {
     return prices.sort((a, b) => new Date(a.valid_from).getTime() - new Date(b.valid_from).getTime())
 }
 
@@ -655,6 +656,10 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                                             <p className="text-xl font-bold text-slate-800">{dayStats.avg.toFixed(2)}p</p>
                                                         </div>
                                                     </div>
+                                                    <div className="mt-6">
+                                                        <PriceList prices={tomorrowPrices} title="Tomorrow"
+                                                                   isToday={false}/>
+                                                    </div>
                                                 </CardContent>
                                             </Card>,
                                         )
@@ -719,6 +724,13 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                                                         <p className="text-sm text-slate-700 font-medium">Avg</p>
                                                         <p className="text-xl font-bold text-slate-800">{dayStats.avg.toFixed(2)}p</p>
                                                     </div>
+                                                </div>
+                                                <div className="mt-6">
+                                                    <PriceList
+                                                        prices={dayPrices}
+                                                        title={dayInfo.dateStringKey === todayDateStringKey ? "Today" : dayInfo.label}
+                                                        isToday={dayInfo.dateStringKey === todayDateStringKey}
+                                                    />
                                                 </div>
                                             </CardContent>
                                         </Card>,

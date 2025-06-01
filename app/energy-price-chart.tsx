@@ -199,10 +199,12 @@ export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProp
                         </defs>
                         <XAxis
                             dataKey="time"
-                            tick={{fontSize: 11, fill: "#475569"}}
+                            tick={{fontSize: 9, fill: "#475569"}}
                             interval="preserveStartEnd"
                             axisLine={false}
                             tickLine={false}
+                            angle={-45}
+                            textAnchor="end"
                         />
                         <YAxis
                             tick={{fontSize: 11, fill: "#475569"}}
