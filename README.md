@@ -143,8 +143,3 @@ Contributions are welcome! If you have suggestions for improvements or bug fixes
 11. Open a Pull Request.
 
 Please ensure your code adheres to the existing linting rules.
-
-License
--------
-
-This project does not currently have a specified license. Please refer to the repository owner for licensing information.
