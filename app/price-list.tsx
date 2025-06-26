@@ -1,7 +1,7 @@
 "use client"
 
 import React, {useState, useEffect, useRef} from "react"
-import {Badge} from "@/components/ui/badge" // Assuming this is from shadcn/ui or similar
+import {Badge} from "@/components/ui/badge"
 import {Clock, Zap} from "lucide-react"
 
 interface EnergyRate {
