@@ -3785,8 +3785,8 @@ __metadata:
   linkType: hard
 
 "recharts@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "recharts@npm:3.0.0"
+  version: 3.0.1
+  resolution: "recharts@npm:3.0.1"
   dependencies:
     "@reduxjs/toolkit": "npm:1.x.x || 2.x.x"
     clsx: "npm:^2.1.1"
@@ -3803,7 +3803,7 @@ __metadata:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react-is: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/cd3b1cd9e3cb3c38d3636238620bf2e3b89be000bb1e6083456e74d413ec1b3fdccc614a90b2f25ffbbcf7602a6b276335f00efa454ea1b84c348ad0aa7af2f4
+  checksum: 10c0/19282c15ace4d0b0e3788511d5844b0534be45af0cea18237ececbcb296ef20f72c4163b1cb3588e57bbdf6c4afd8216df1eebf183ce595a5d85ea43ac058188
   languageName: node
   linkType: hard
 
