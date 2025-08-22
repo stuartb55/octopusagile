@@ -1,45 +1,12 @@
+/* eslint-disable react/prop-types */
 "use client"
 
 import {XAxis, YAxis, Area, AreaChart, Cell, Bar, BarChart, ResponsiveContainer} from "recharts"
 import {ChartContainer, ChartTooltip} from "@/components/ui/chart"
 
-interface EnergyRate {
-    value_exc_vat: number
-    value_inc_vat: number
-    valid_from: string
-    valid_to: string
-}
 
-interface EnergyPriceChartProps {
-    prices: EnergyRate[]
-    compact?: boolean
-}
-
-interface ChartDatapoint {
-    time: string
-    price: number
-    timestamp: number
-    date: string
-    color: string
-    category: string
-}
-
-interface TooltipPayloadItem {
-    payload: ChartDatapoint
-    name?: string
-    value?: number | string
-    color?: string
-    dataKey?: string
-}
-
-interface CustomTooltipProps {
-    active?: boolean
-    payload?: TooltipPayloadItem[]
-    label?: string | number
-}
-
-export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProps) {
-    const chartData: ChartDatapoint[] = prices.map((price) => {
+export function EnergyPriceChart({prices, compact = false}) {
+    const chartData = prices.map((price) => {
         let color = "#ef4444" // red default
         let category = "High"
 
@@ -92,7 +59,7 @@ export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProp
         },
     }
 
-    const CustomTooltip = ({active, payload}: CustomTooltipProps) => {
+    const CustomTooltip = ({active, payload}) => {
         if (active && payload && payload.length) {
             const data = payload[0].payload
             return (
@@ -166,7 +133,7 @@ export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProp
                             />
                             <YAxis
                                 tick={{fontSize: 10, fill: "#475569"}}
-                                domain={[(dataMin: number) => Math.floor(dataMin - 1), (dataMax: number) => Math.ceil(dataMax + 1)]}
+                                domain={[(dataMin) => Math.floor(dataMin - 1), (dataMax) => Math.ceil(dataMax + 1)]}
                                 axisLine={false}
                                 tickLine={false}
                             />
@@ -214,7 +181,7 @@ export function EnergyPriceChart({prices, compact = false}: EnergyPriceChartProp
                                 position: "insideLeft",
                                 style: {textAnchor: "middle", fill: "#475569"},
                             }}
-                            domain={[(dataMin: number) => Math.floor(dataMin - 2), (dataMax: number) => Math.ceil(dataMax + 2)]}
+                            domain={[(dataMin) => Math.floor(dataMin - 2), (dataMax) => Math.ceil(dataMax + 2)]}
                             axisLine={false}
                             tickLine={false}
                         />
