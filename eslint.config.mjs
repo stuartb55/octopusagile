@@ -2,11 +2,26 @@ import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import pluginReact from "eslint-plugin-react";
-import pluginNext from "@next/eslint-plugin-next";
+import { FlatCompat } from "@eslint/eslintrc";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const compat = new FlatCompat({
+    baseDirectory: __dirname
+});
 
 export default [
+    {
+        ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts"]
+    },
     js.configs.recommended,
-
+    ...tseslint.configs.recommended,
+    pluginReact.configs.flat.recommended,
+    pluginReact.configs.flat['jsx-runtime'],
+    ...compat.extends("next/core-web-vitals"),
     {
         files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
         languageOptions: {
@@ -14,33 +29,18 @@ export default [
                 ...globals.browser,
                 ...globals.node,
             }
-        }
-    },
-
-    ...tseslint.configs.recommended,
-
-    pluginReact.configs.flat.recommended,
-    pluginReact.configs.flat['jsx-runtime'],
-    {
+        },
         settings: {
             react: {
                 version: "detect",
             },
         },
-    },
-
-    {
-        plugins: {
-            '@next/next': pluginNext
-        },
         rules: {
-            ...pluginNext.configs.recommended.rules,
-
+            "react/prop-types": "off"
         },
     },
-
     {
-        files: ["**/*.{ts,tsx,mts,cts}"], // Scope these custom rules to TypeScript files
+        files: ["**/*.{ts,tsx,mts,cts}"],
         rules: {
             '@typescript-eslint/no-unused-vars': [
                 'error',
@@ -52,7 +52,6 @@ export default [
                     destructuredArrayIgnorePattern: '^_',
                 },
             ],
-            "react/prop-types": "off"
         },
     }
 ];

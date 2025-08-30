@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 "use client"
 
 import {XAxis, YAxis, Area, AreaChart, Cell, Bar, BarChart, ResponsiveContainer} from "recharts"
