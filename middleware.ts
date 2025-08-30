@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function middleware(_request: NextRequest) {
   // Generate a unique nonce for this request (Edge Runtime compatible)
   const nonce = crypto.getRandomValues(new Uint8Array(16))
     .reduce((acc, byte) => acc + String.fromCharCode(byte), '');
