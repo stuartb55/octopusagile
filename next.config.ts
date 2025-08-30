@@ -11,10 +11,10 @@ const nextConfig: NextConfig = {
       "default-src 'self'",
       isDevelopment 
         ? "script-src 'self' 'unsafe-eval' 'unsafe-inline'" 
-        : "script-src 'self'",
+        : "script-src 'self' 'sha256-7mu4H06fwDCjmnxxr/xNHyuQC6pLTHr4M2E4jXw5WZs=' 'sha256-QAlSewaQLi/NPCznjAZSyvQ72heD0VdxmNDDkZeCxgc=' 'sha256-OBTN3RiyCV4Bq7dFqZ5a2pAXjnCcCYeTJMO2I/LYKeo=' 'sha256-s5DOaPRZP9T8jHi4r9v9ac6W1EDGP5DlRkuljgFcC3A=' 'sha256-Fos4Q2eDccOVqoFVrRUQJtBu1Q9OCdrh/nwbb+0Pwkc=' 'sha256-e3C4FJJCwRrE3s7nM3YO38qVpga9j0AYmFBZnQjwIlA=' 'sha256-SDvJd2PAMIGZsqfs4z8Vq7JimYRsUJej4nhs1FuojOw=' 'sha256-8VjaS5Nx0HO8HZzKOARIB8uUZ4hoK0Wswopsrbunero=' 'sha256-x+en11sZ3s2uuNzKFjcQ6cBi2wmUmpnNJ2rICEPoSVc=' 'sha256-RdbcnVFK6zGoNMIwUyNFLOA6ctEW7uOjN9qkV3P7LY8=' 'sha256-WDHpdcgFbt9SLem1OykhTxDeRKtDkyPirDPzAOPtoYw=' 'sha256-P4p9HYtfg+w3NupQ1+ovBlYCtFG+tEOrHmOdw5SdkMQ='",
       isDevelopment 
         ? "style-src 'self' 'unsafe-inline'" 
-        : "style-src 'self'",
+        : "style-src 'self' 'sha256-R0edqj818Q2GSChz9Bmf7NmpeMlCeetyXy/3cImG5wo=' 'sha256-pGJbEgswt/KHNxfXfXJZmuzGVyXVnOErjEK3NA/r1hg='",
       "img-src 'self' data: https:",
       "font-src 'self' https://fonts.gstatic.com",
       isDevelopment
