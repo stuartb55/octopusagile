@@ -1,16 +1,70 @@
-import { EnergyRate, ApiResponse, FetchResult } from './types';
+import { EnergyRate, FetchResult } from './types';
 import { APP_CONFIG } from './config';
+import { validateApiResponse, validateUrl, ValidationRules } from './validation';
+import { octopusApiRateLimiter, RateLimitError, TimeoutError } from './rate-limiter';
 
 export class EnergyService {
   private static buildApiUrl(periodFrom: string, periodTo: string): string {
     const { baseUrl, productCode, tariffCode } = APP_CONFIG.api;
-    return `${baseUrl}/products/${productCode}/electricity-tariffs/${tariffCode}/standard-unit-rates/?period_from=${periodFrom}&period_to=${periodTo}`;
+    const url = `${baseUrl}/products/${productCode}/electricity-tariffs/${tariffCode}/standard-unit-rates/?period_from=${periodFrom}&period_to=${periodTo}`;
+    
+    if (!validateUrl(url)) {
+      throw new Error('Invalid API URL detected');
+    }
+    
+    return url;
+  }
+
+  private static async fetchWithSecurity(url: string): Promise<Response> {
+    if (!validateUrl(url)) {
+      throw new Error('Invalid URL for security policy');
+    }
+
+    return octopusApiRateLimiter.execute(async () => {
+      const response = await fetch(url, {
+        next: { revalidate: APP_CONFIG.api.revalidateSeconds },
+        headers: {
+          'User-Agent': 'Octopus-Agile-Tracker/1.0',
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        const statusText = response.statusText;
+        
+        // Enhanced error handling for different HTTP status codes
+        switch (status) {
+          case 429:
+            throw new RateLimitError(`API rate limit exceeded: ${statusText}`);
+          case 401:
+            throw new Error(`API authentication failed: ${statusText}`);
+          case 403:
+            throw new Error(`API access forbidden: ${statusText}`);
+          case 404:
+            throw new Error(`API endpoint not found: ${statusText}`);
+          case 500:
+          case 502:
+          case 503:
+          case 504:
+            throw new Error(`API server error (${status}): ${statusText}`);
+          default:
+            throw new Error(`API request failed (${status}): ${statusText}`);
+        }
+      }
+
+      return response;
+    });
   }
 
   static async getEnergyPrices(days = 1): Promise<FetchResult<EnergyRate[]>> {
     try {
+      // Validate input parameters
+      const validatedDays = Math.max(1, Math.min(ValidationRules.days.max, days));
+      
       const now = new Date();
-      const daysAgo = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+      const daysAgo = new Date(now.getTime() - validatedDays * 24 * 60 * 60 * 1000);
       daysAgo.setHours(0, 0, 0, 0);
 
       const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -21,24 +75,36 @@ export class EnergyService {
 
       let allResults: EnergyRate[] = [];
       let nextUrl: string | null = this.buildApiUrl(periodFrom, periodTo);
+      let requestCount = 0;
+      const maxRequests = 10; // Prevent infinite pagination loops
 
-      while (nextUrl && allResults.length < APP_CONFIG.api.maxResults) {
-        const response = await fetch(nextUrl, {
-          next: { revalidate: APP_CONFIG.api.revalidateSeconds },
-        });
+      while (nextUrl && allResults.length < ValidationRules.api.maxResults && requestCount < maxRequests) {
+        const response = await this.fetchWithSecurity(nextUrl);
+        const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        // Validate API response structure
+        if (!validateApiResponse(data)) {
+          throw new Error('Invalid API response format received');
         }
 
-        const data: ApiResponse = await response.json();
         allResults = [...allResults, ...data.results];
         nextUrl = data.next;
+        requestCount++;
 
-        if (allResults.length > APP_CONFIG.api.maxResults) {
-          console.warn(`Result limit reached (${APP_CONFIG.api.maxResults}), stopping pagination`);
+        // Validate URL if there's a next page
+        if (nextUrl && !validateUrl(nextUrl)) {
+          console.warn('Invalid next URL received from API, stopping pagination');
           break;
         }
+
+        if (allResults.length > ValidationRules.api.maxResults) {
+          console.warn(`Result limit reached (${ValidationRules.api.maxResults}), stopping pagination`);
+          break;
+        }
+      }
+
+      if (requestCount >= maxRequests) {
+        console.warn(`Maximum request limit reached (${maxRequests}), stopping pagination`);
       }
 
       return {
@@ -47,7 +113,17 @@ export class EnergyService {
         isLoading: false,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred while fetching energy prices';
+      let errorMessage = 'Unknown error occurred while fetching energy prices';
+      
+      if (error instanceof RateLimitError) {
+        errorMessage = `Rate limit exceeded: ${error.message}`;
+      } else if (error instanceof TimeoutError) {
+        errorMessage = `Request timeout: ${error.message}`;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      console.error('EnergyService error:', error);
       
       return {
         data: null,

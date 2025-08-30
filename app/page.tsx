@@ -9,6 +9,7 @@ import { MainDashboard } from "@/components/main-dashboard";
 // Import our new utilities
 import { EnergyService } from "@/lib/energy-service";
 import { EnergyRate, PageProps } from "@/lib/types";
+import { sanitizeSearchParams, ValidationError } from "@/lib/validation";
 
 async function getPricesData(days: number): Promise<EnergyRate[]> {
   const result = await EnergyService.getEnergyPrices(days);
@@ -22,7 +23,21 @@ async function getPricesData(days: number): Promise<EnergyRate[]> {
 
 export default async function Home({ searchParams }: PageProps) {
   const resolvedSearchParams = await searchParams;
-  const days = parseInt(resolvedSearchParams.days || "3", 10);
+  
+  let days: number;
+  let validationError: string | null = null;
+  
+  try {
+    const sanitized = sanitizeSearchParams(resolvedSearchParams);
+    days = sanitized.days;
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      validationError = error.message;
+      days = 3; // fallback to default
+    } else {
+      throw error;
+    }
+  }
   
   try {
     const allPrices = await getPricesData(days);
@@ -48,6 +63,18 @@ export default async function Home({ searchParams }: PageProps) {
 
     return (
       <EnergyErrorBoundary>
+        {validationError && (
+          <div className="container mx-auto px-4 py-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center">
+                <AlertCircle className="w-5 h-5 text-amber-600 mr-2" />
+                <p className="text-amber-800 text-sm">
+                  Parameter validation warning: {validationError}. Using default value.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         <Suspense fallback={<DashboardSkeleton />}>
           <MainDashboard allPrices={allPrices} selectedDays={days} />
         </Suspense>
