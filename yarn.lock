@@ -139,7 +139,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:9.34.0, @eslint/js@npm:^9.33.0":
+"@eslint/js@npm:9.34.0, @eslint/js@npm:^9.34.0":
   version: 9.34.0
   resolution: "@eslint/js@npm:9.34.0"
   checksum: 10c0/53f1bfd2a374683d9382a6850354555f6e89a88416c34a5d34e9fbbaf717e97c2b06300e8f93e5eddba8bda8951ccab7f93a680e56ded1a3d21d526019e69bab
@@ -492,7 +492,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/eslint-plugin-next@npm:15.5.2, @next/eslint-plugin-next@npm:^15.5.0":
+"@next/eslint-plugin-next@npm:15.5.2, @next/eslint-plugin-next@npm:^15.5.2":
   version: 15.5.2
   resolution: "@next/eslint-plugin-next@npm:15.5.2"
   dependencies:
@@ -961,12 +961,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^19.1.7":
-  version: 19.1.8
-  resolution: "@types/react-dom@npm:19.1.8"
+"@types/react-dom@npm:^19.1.9":
+  version: 19.1.9
+  resolution: "@types/react-dom@npm:19.1.9"
   peerDependencies:
     "@types/react": ^19.0.0
-  checksum: 10c0/561f9679c99e93adba8ecdf7d5ad69cc9d5e35837fa996246a83713f0ce498fc5b871f9a2a3342c7d440fc02159abe10f29c4a4004527d5d38b2e84f21840793
+  checksum: 10c0/34c8dda86c1590b3ef0e7ecd38f9663a66ba2dd69113ba74fb0adc36b83bbfb8c94c1487a2505282a5f7e5e000d2ebf36f4c0fd41b3b672f5178fd1d4f1f8f58
   languageName: node
   linkType: hard
 
@@ -979,7 +979,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:^19.1.10":
+"@types/react@npm:*, @types/react@npm:^19.1.12":
   version: 19.1.12
   resolution: "@types/react@npm:19.1.12"
   dependencies:
@@ -2335,7 +2335,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^9.33.0":
+"eslint@npm:^9.34.0":
   version: 9.34.0
   resolution: "eslint@npm:9.34.0"
   dependencies:
@@ -3602,17 +3602,17 @@ __metadata:
   resolution: "octopusagile@workspace:."
   dependencies:
     "@eslint/eslintrc": "npm:^3.3.1"
-    "@eslint/js": "npm:^9.33.0"
-    "@next/eslint-plugin-next": "npm:^15.5.0"
+    "@eslint/js": "npm:^9.34.0"
+    "@next/eslint-plugin-next": "npm:^15.5.2"
     "@radix-ui/react-slot": "npm:^1.2.3"
     "@tailwindcss/postcss": "npm:^4.1.12"
     "@types/node": "npm:^24.3.0"
-    "@types/react": "npm:^19.1.10"
-    "@types/react-dom": "npm:^19.1.7"
+    "@types/react": "npm:^19.1.12"
+    "@types/react-dom": "npm:^19.1.9"
     "@types/react-is": "npm:^19.0.0"
     class-variance-authority: "npm:^0.7.1"
     clsx: "npm:^2.1.1"
-    eslint: "npm:^9.33.0"
+    eslint: "npm:^9.34.0"
     eslint-config-next: "npm:15.5.2"
     eslint-plugin-react: "npm:^7.37.5"
     globals: "npm:^16.3.0"
@@ -3626,7 +3626,7 @@ __metadata:
     tailwindcss: "npm:^4.1.12"
     tailwindcss-animate: "npm:^1.0.7"
     typescript: "npm:^5.9.2"
-    typescript-eslint: "npm:^8.40.0"
+    typescript-eslint: "npm:^8.41.0"
   languageName: unknown
   linkType: soft
 
@@ -4541,7 +4541,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript-eslint@npm:^8.40.0":
+"typescript-eslint@npm:^8.41.0":
   version: 8.41.0
   resolution: "typescript-eslint@npm:8.41.0"
   dependencies:
