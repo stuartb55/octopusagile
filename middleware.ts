@@ -19,10 +19,10 @@ export function middleware(_request: NextRequest) {
     "default-src 'self'",
     isDevelopment 
       ? "script-src 'self' 'unsafe-eval' 'unsafe-inline'" 
-      : `script-src 'self' 'nonce-${base64Nonce}'`,
+      : `script-src 'self' 'nonce-${base64Nonce}' 'unsafe-eval'`,
     isDevelopment 
       ? "style-src 'self' 'unsafe-inline'" 
-      : `style-src 'self' 'nonce-${base64Nonce}'`,
+      : `style-src 'self' 'nonce-${base64Nonce}' 'unsafe-hashes' 'sha256-R0edqj818Q2GSChz9Bmf7NmpeMlCeetyXy/3cImG5wo=' 'sha256-pGJbEgswt/KHNxfXfXJZmuzGVyXVnOErjEK3NA/r1hg='`,
     "img-src 'self' data: https:",
     "font-src 'self' https://fonts.gstatic.com",
     isDevelopment
