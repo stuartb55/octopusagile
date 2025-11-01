@@ -28,7 +28,7 @@ This dashboard fetches electricity pricing data from the Octopus Energy API, pre
 * **Icons**: [Lucide React](https://lucide.dev/)
 * **UI Components**: Custom components built with [shadcn/ui](https://ui.shadcn.com/) principles (as indicated by `components.json` and structure).
 * **Linting**: [ESLint](https://eslint.org/) with TypeScript support and Next.js recommended rules.
-* **Package Manager**: Yarn (Version 4.9.1)
+* **Package Manager**: npm (lockfile: `package-lock.json`)
 * **CI/CD**: GitHub Actions for continuous integration (linting and building on push/pull requests to `main`).
 * **Font**: [Geist](https://vercel.com/font) (Sans and Mono)
 
@@ -39,7 +39,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 ### Prerequisites
 
 * Node.js (Version 22.x recommended)
-* Yarn (Version 4.x or as specified in `packageManager`)
+* npm (bundled with Node.js)
 
 ### Installation
 
@@ -49,16 +49,9 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
     cd octopusagile
     ```
 
-2.  **Enable Corepack and set Yarn version:**
+2.  **Install dependencies:**
     ```bash
-    corepack enable
-    yarn set version stable
-    ```
-    (This step ensures you're using the project's specified Yarn version, as seen in the CI workflow).
-
-3.  **Install dependencies:**
-    ```bash
-    yarn install
+    npm install
     ```
 
 
@@ -69,7 +62,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 To run the development server:
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 Open [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000) with your browser to see the result.
@@ -83,7 +76,7 @@ To lint the codebase:
 Bash
 
 ```
-yarn lint
+npm run lint
 
 ```
 
@@ -94,7 +87,7 @@ To build the project for production:
 Bash
 
 ```
-yarn build
+npm run build
 
 ```
 
@@ -105,7 +98,7 @@ After building, to start the production server:
 Bash
 
 ```
-yarn start
+npm start
 
 ```
 
