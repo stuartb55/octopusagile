@@ -7,8 +7,8 @@ const THIRTY_MINUTES_IN_MS = 30 * 60 * 1000;
 
 export function AutoRefresh() {
     const router = useRouter();
-    const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-    const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const intervalIdRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
         const scheduleNextRefresh = () => {

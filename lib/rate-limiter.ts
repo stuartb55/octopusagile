@@ -7,9 +7,11 @@ export interface RateLimitOptions {
 }
 
 export class RateLimitError extends Error {
-  constructor(message: string, public retryAfter?: number) {
+  public retryAfter?: number;
+  constructor(message: string, retryAfter?: number) {
     super(message);
     this.name = 'RateLimitError';
+    this.retryAfter = retryAfter;
   }
 }
 
@@ -114,8 +116,7 @@ export class RateLimiter {
         this.lastRequest = now;
 
         // Execute with timeout
-        const result = await this.withTimeout(fn(), this.options.timeoutMs);
-        return result;
+        return await this.withTimeout(fn(), this.options.timeoutMs);
 
       } catch (error) {
         lastError = error as Error;

@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export function middleware(_request: NextRequest) {
+export function proxy(request: NextRequest) {
   // Generate a unique nonce for this request (Edge Runtime compatible)
   const nonce = crypto.getRandomValues(new Uint8Array(16))
     .reduce((acc, byte) => acc + String.fromCharCode(byte), '');
   const base64Nonce = btoa(nonce);
-  
+
   // Create response
   const response = NextResponse.next();
-  
+
+  // Record request method in a safe header for downstream debugging/observability
+  response.headers.set('x-request-method', request.method || 'UNKNOWN');
+
   // Set the nonce in headers so it's available in the app
   response.headers.set('x-nonce', base64Nonce);
-  
+
   // Build CSP header with nonces
   const isDevelopment = process.env.NODE_ENV === 'development';
-  
+
   const cspDirectives = [
     "default-src 'self'",
     isDevelopment 
@@ -53,13 +56,6 @@ export function middleware(_request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };

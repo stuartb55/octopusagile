@@ -2,6 +2,7 @@ import { EnergyRate, FetchResult } from './types';
 import { APP_CONFIG } from './config';
 import { validateApiResponse, validateUrl, ValidationRules } from './validation';
 import { octopusApiRateLimiter, RateLimitError, TimeoutError } from './rate-limiter';
+import { cache } from 'react';
 
 export class EnergyService {
   private static buildApiUrl(periodFrom: string, periodTo: string): string {
@@ -58,7 +59,9 @@ export class EnergyService {
     });
   }
 
-  static async getEnergyPrices(days = 1): Promise<FetchResult<EnergyRate[]>> {
+  // Core implementation that performs the actual network calls and validation.
+  // Separated so we can expose a cached wrapper while keeping the implementation testable.
+  private static async getEnergyPricesImpl(days = 1): Promise<FetchResult<EnergyRate[]>> {
     try {
       // Validate input parameters
       const validatedDays = Math.max(1, Math.min(ValidationRules.days.max, days));
@@ -114,7 +117,7 @@ export class EnergyService {
       };
     } catch (error) {
       let errorMessage = 'Unknown error occurred while fetching energy prices';
-      
+
       if (error instanceof RateLimitError) {
         errorMessage = `Rate limit exceeded: ${error.message}`;
       } else if (error instanceof TimeoutError) {
@@ -122,9 +125,9 @@ export class EnergyService {
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-      
+
       console.error('EnergyService error:', error);
-      
+
       return {
         data: null,
         error: errorMessage,
@@ -133,9 +136,15 @@ export class EnergyService {
     }
   }
 
+  // Export cached function (inferred type) to avoid lint false-positives about unused parameter names
+  static getEnergyPrices = cache(async (d = 1) => {
+    return await EnergyService.getEnergyPricesImpl(d);
+  });
+
   static async getCurrentPrice(): Promise<FetchResult<EnergyRate | null>> {
+    // Use the cached public method so current price benefits from memoization.
     const result = await this.getEnergyPrices(1);
-    
+
     if (result.error || !result.data) {
       return {
         data: null,
