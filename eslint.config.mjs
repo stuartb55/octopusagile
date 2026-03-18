@@ -1,32 +1,26 @@
-import js from "@eslint/js";
-import globals from "globals";
-import tsParser from "@typescript-eslint/parser";
+import { defineConfig, globalIgnores } from 'eslint/config';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTs from 'eslint-config-next/typescript';
 
-
-export default [
-  {
-    ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts"]
-  },
-  js.configs.recommended,
-  {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
-        ecmaFeatures: {
-          jsx: true
-        }
-      },
-      globals: {
-        ...globals.browser,
-        ...globals.node
-      }
+const eslintConfig = defineConfig([
+    ...nextVitals,
+    ...nextTs,
+    // Override default ignores of eslint-config-next.
+    globalIgnores([
+        // Default ignores of eslint-config-next:
+        '.next/**',
+        'out/**',
+        'build/**',
+        'next-env.d.ts',
+    ]),
+    {
+        settings: {
+            // Fix for ESLint 10+: eslint-plugin-react uses context.getFilename() (legacy API)
+            // which was removed in ESLint 10 flat config. Declaring the version explicitly
+            // prevents the plugin from trying to auto-detect it and failing.
+            react: { version: '19' },
+        },
     },
-    rules: {
-      // Keep this minimal so ESLint can load reliably. Add project-specific rules/plugins later.
-      // Example: project prefers TypeScript types over prop-types (disabled in source code where needed)
-    }
-  }
-];
+]);
+
+export default eslintConfig;
