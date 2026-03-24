@@ -65,7 +65,11 @@ export function MainDashboard({ allPrices, selectedDays }: MainDashboardProps) {
 
   // Calculate additional metrics using consistent date keys
   const todayDateKey = useMemo(() => getDateKey(new Date()), []);
-  const tomorrowDateKey = useMemo(() => getDateKey(new Date(Date.now() + 24 * 60 * 60 * 1000)), []);
+  const tomorrowDateKey = useMemo(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return getDateKey(tomorrow);
+  }, []);
 
   const hasAnyTomorrowPrices = (groupedPrices[tomorrowDateKey] || []).length > 0;
   
