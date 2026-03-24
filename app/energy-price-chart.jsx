@@ -4,6 +4,37 @@
 import {XAxis, YAxis, Area, AreaChart, Cell, Bar, BarChart, ResponsiveContainer} from "recharts"
 import {ChartContainer, ChartTooltip} from "@/components/ui/chart"
 
+function renderCustomTooltip({active, payload}) {
+    if (active && payload && payload.length) {
+        const data = payload[0].payload
+        return (
+            <div className="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl p-4 shadow-xl">
+                <div className="space-y-2">
+                    <p className="font-semibold text-slate-900">
+                        {new Date(data.timestamp).toLocaleString("en-GB", {
+                            weekday: "short",
+                            day: "numeric",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        })}
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{backgroundColor: data.color}}/>
+                        <span className="text-sm text-slate-600">Price:</span>
+                        <span className="font-bold text-lg" style={{color: data.color}}>
+                {data.price.toFixed(2)}p/kWh
+              </span>
+                    </div>
+                    <div className="text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md">{data.category} Price
+                        Range
+                    </div>
+                </div>
+            </div>
+        )
+    }
+    return null
+}
 
 export function EnergyPriceChart({prices, compact = false}) {
     const chartData = prices.map((price) => {
@@ -59,59 +90,6 @@ export function EnergyPriceChart({prices, compact = false}) {
         },
     }
 
-    const CustomTooltip = ({active, payload}) => {
-        if (active && payload && payload.length) {
-            const data = payload[0].payload
-            return (
-                <div className="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl p-4 shadow-xl">
-                    <div className="space-y-2">
-                        <p className="font-semibold text-slate-900">
-                            {new Date(data.timestamp).toLocaleString("en-GB", {
-                                weekday: "short",
-                                day: "numeric",
-                                month: "short",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })}
-                        </p>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: data.color}}/>
-                            <span className="text-sm text-slate-600">Price:</span>
-                            <span className="font-bold text-lg" style={{color: data.color}}>
-                {data.price.toFixed(2)}p/kWh
-              </span>
-                        </div>
-                        <div className="text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md">{data.category} Price
-                            Range
-                        </div>
-                    </div>
-                </div>
-            )
-        }
-        return null
-    }
-
-    const CustomLegend = () => (
-        <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm">
-            <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-blue-500"/>
-                <span className="text-slate-700">Negative (&lt; 0p)</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-emerald-500"/>
-                <span className="text-slate-700">Low (0-15p)</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-amber-500"/>
-                <span className="text-slate-700">Medium (15-30p)</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500"/>
-                <span className="text-slate-700">High (&gt; 30p)</span>
-            </div>
-        </div>
-    )
-
     if (compact) {
         return (
             <div className="w-full">
@@ -137,7 +115,7 @@ export function EnergyPriceChart({prices, compact = false}) {
                                 axisLine={false}
                                 tickLine={false}
                             />
-                            <ChartTooltip content={<CustomTooltip/>}/>
+                            <ChartTooltip content={renderCustomTooltip}/>
                             <Area
                                 type="monotone"
                                 dataKey="price"
@@ -185,7 +163,7 @@ export function EnergyPriceChart({prices, compact = false}) {
                             axisLine={false}
                             tickLine={false}
                         />
-                        <ChartTooltip content={<CustomTooltip/>}/>
+                        <ChartTooltip content={renderCustomTooltip}/>
                         <Bar dataKey="price" radius={[2, 2, 0, 0]} fill="url(#barGradient)">
                             {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color}/>
@@ -194,7 +172,26 @@ export function EnergyPriceChart({prices, compact = false}) {
                     </BarChart>
                 </ResponsiveContainer>
             </ChartContainer>
-            {!compact && <CustomLegend/>}
+            {!compact && (
+                <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm">
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-blue-500"/>
+                        <span className="text-slate-700">Negative (&lt; 0p)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-emerald-500"/>
+                        <span className="text-slate-700">Low (0-15p)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-amber-500"/>
+                        <span className="text-slate-700">Medium (15-30p)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-500"/>
+                        <span className="text-slate-700">High (&gt; 30p)</span>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

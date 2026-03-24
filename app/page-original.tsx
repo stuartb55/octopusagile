@@ -579,7 +579,9 @@ export default async function EnergyPricesPage({searchParams}: PageProps) {
                             <EnergyPriceChart
                                 prices={filteredPrices.filter((p) => {
                                     const priceDate = new Date(p.valid_from)
-                                    return priceDate < new Date(Date.now() + 48 * 60 * 60 * 1000)
+                                    const upperBound = new Date()
+                                    upperBound.setHours(upperBound.getHours() + 48)
+                                    return priceDate < upperBound
                                 })}
                             />
                         </CardContent>

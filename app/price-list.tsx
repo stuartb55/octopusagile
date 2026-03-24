@@ -147,7 +147,7 @@ export function PriceList({prices, title, isToday = false}: PriceListProps) {
     const [isVisible, setIsVisible] = useState(false);
     const [showAll, setShowAll] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
-    const nowRef = useRef(new Date()); // Use ref for 'now' to keep it stable unless specifically updated
+    const [renderNow] = useState(() => new Date());
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -181,7 +181,7 @@ export function PriceList({prices, title, isToday = false}: PriceListProps) {
         ? sortedPrices.findIndex((price) => {
             const validFrom = new Date(price.valid_from);
             const validTo = new Date(price.valid_to);
-            return nowRef.current >= validFrom && nowRef.current < validTo;
+            return renderNow >= validFrom && renderNow < validTo;
         })
         : -1;
 
