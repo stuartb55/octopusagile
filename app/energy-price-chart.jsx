@@ -4,7 +4,7 @@
 import {XAxis, YAxis, Area, AreaChart, Cell, Bar, BarChart, ResponsiveContainer} from "recharts"
 import {ChartContainer, ChartTooltip} from "@/components/ui/chart"
 
-function renderCustomTooltip({active, payload}) {
+function CustomTooltip({active, payload}) {
     if (active && payload && payload.length) {
         const data = payload[0].payload
         return (
@@ -115,7 +115,7 @@ export function EnergyPriceChart({prices, compact = false}) {
                                 axisLine={false}
                                 tickLine={false}
                             />
-                            <ChartTooltip content={renderCustomTooltip}/>
+                            <ChartTooltip content={<CustomTooltip />}/>
                             <Area
                                 type="monotone"
                                 dataKey="price"
@@ -163,7 +163,7 @@ export function EnergyPriceChart({prices, compact = false}) {
                             axisLine={false}
                             tickLine={false}
                         />
-                        <ChartTooltip content={renderCustomTooltip}/>
+                        <ChartTooltip content={<CustomTooltip />}/>
                         <Bar dataKey="price" radius={[2, 2, 0, 0]} fill="url(#barGradient)">
                             {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color}/>
