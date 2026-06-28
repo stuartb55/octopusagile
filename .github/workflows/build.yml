@@ -9,10 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
     strategy:
       matrix:
         node-version: [ '24.x' ]
@@ -32,15 +28,7 @@ jobs:
 
       - uses: OWASP/cve-lite-cli@v1
         with:
-          verbose: "true"
           fail-on: high
-          sarif: "true"
-      
-      - name: Upload to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          sarif_file: ${{ github.workspace }}
 
       - name: Cache Next.js build output
         uses: actions/cache@v5
