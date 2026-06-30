@@ -29,6 +29,7 @@ jobs:
       - uses: OWASP/cve-lite-cli@v1
         with:
           fail-on: high
+          fix:
 
       - name: Cache Next.js build output
         uses: actions/cache@v6
